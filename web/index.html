@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Focus Timer</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#101010" />
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #101010;
+    color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .clock {
+    text-align: center;
+    color: #88ccff;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  video {
+    width: 100%;
+    max-height: 260px;
+    background: #000;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  .focus-readout {
+    text-align: center;
+    color: #aaffaa;
+    font-size: 14px;
+    margin: 6px 0 0;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .tabs button {
+    flex: 1;
+  }
+  button {
+    background: #2a2a2a;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  button.active {
+    background: #1e88e5;
+    border-color: #1e88e5;
+  }
+  .main-time {
+    text-align: center;
+    font-size: 15vw;
+    font-weight: 600;
+    margin: 24px 0 8px;
+    line-height: 1;
+  }
+  @media (min-width: 480px) {
+    .main-time { font-size: 64px; }
+  }
+  .minutes-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .minutes-row input {
+    width: 90px;
+    padding: 10px;
+    font-size: 16px;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .controls button {
+    min-width: 110px;
+  }
+  .alarms-list {
+    margin-top: 28px;
+    font-size: 13px;
+    color: #999;
+    text-align: center;
+  }
+  .permission-note {
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+    margin-top: 6px;
+  }
+  #alarmOverlay {
+    position: fixed;
+    inset: 0;
+    background: #b00020;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    z-index: 1000;
+  }
+  #alarmOverlay.show { display: flex; }
+  #alarmOverlay .label {
+    font-size: 40px;
+  }
+  #alarmOverlay button {
+    background: #fff;
+    color: #b00020;
+    font-weight: 600;
+    padding: 14px 28px;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="clock" id="sastClock">SAST --:--:--</div>
+
+  <video id="cameraPreview" autoplay muted playsinline></video>
+  <div class="focus-readout" id="focusReadout">Focus: --</div>
+  <div class="permission-note" id="permissionNote"></div>
+
+  <div class="tabs">
+    <button id="tabTimer" class="active">Timer</button>
+    <button id="tabStopwatch">Stopwatch</button>
+  </div>
+
+  <div class="main-time" id="mainTime">00:00</div>
+
+  <div class="minutes-row" id="minutesRow">
+    <input id="minutesInput" type="number" min="1" placeholder="min" inputmode="numeric" />
+  </div>
+
+  <div class="controls">
+    <button id="startPauseBtn">Start</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <div class="alarms-list">
+    Daily alarms: 5:30, 9:00, 12:00, 15:00, 18:00, 21:00 (device local time) &mdash; keep this tab open for alarms to fire.
+  </div>
+
+  <div id="alarmOverlay">
+    <div class="label" id="alarmLabel">Alarm</div>
+    <button id="dismissAlarmBtn">Dismiss</button>
+  </div>
+
+<script src="app.js"></script>
+</body>
+</html>

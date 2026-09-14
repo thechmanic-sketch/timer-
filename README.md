@@ -1,6 +1,26 @@
 # Focus Timer
 
-Android app: timer + stopwatch with camera focus readout, minute/second beeps, and 6 fixed daily alarms.
+Timer + stopwatch with camera focus readout, minute/second beeps, and 6 fixed daily alarms.
+Two versions live in this repo:
+
+- **`web/`** — a plain HTML/JS/CSS web app (installable as a PWA). Open `web/index.html`
+  in any modern browser, or serve the folder and "Add to Home Screen." No build step.
+- **root Android project** — the native Kotlin/Android Studio app (see below for building it).
+
+## Web app
+
+Just open `web/index.html` in a browser (Chrome/Edge/Firefox on desktop or Android; camera
+focus-distance readout needs a browser that implements the `ImageCapture` API — currently
+Chromium-based browsers only, and even then most phone cameras don't expose it, so it may
+fall back to "continuous autofocus" text). Notes:
+
+- Camera and notification permissions are requested on load.
+- Alarms only fire while the tab is open — browsers don't allow real background alarms
+  from a plain web page. Keep the tab open (or the PWA running) for the 5:30/9/12/15/18/21
+  alarms to trigger.
+- "Keep screen on" uses the Wake Lock API where the browser supports it.
+
+## Android app
 
 ## Features
 
