@@ -1,4 +1,4 @@
-package com.focustimer.app
+package com.freshfocus.timer
 
 import android.app.AlarmManager
 import android.app.PendingIntent

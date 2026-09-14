@@ -1,4 +1,4 @@
-package com.focustimer.app
+package com.freshfocus.timer
 
 import android.Manifest
 import android.content.pm.PackageManager

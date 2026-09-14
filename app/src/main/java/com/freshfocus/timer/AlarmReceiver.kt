@@ -1,4 +1,4 @@
-package com.focustimer.app
+package com.freshfocus.timer
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,7 +8,6 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val hour = intent.getIntExtra("hour", 0)
         val minute = intent.getIntExtra("minute", 0)
-        val requestCode = intent.getIntExtra("requestCode", -1)
 
         val ringIntent = Intent(context, AlarmRingActivity::class.java).apply {
             addFlags(
@@ -23,7 +22,5 @@ class AlarmReceiver : BroadcastReceiver() {
 
         // Re-schedule this specific slot for tomorrow.
         AlarmScheduler.scheduleAllDailyAlarms(context)
-        @Suppress("UNUSED_EXPRESSION")
-        requestCode
     }
 }

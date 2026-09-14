@@ -4,18 +4,30 @@ plugins {
 }
 
 android {
-    namespace = "com.focustimer.app"
+    namespace = "com.freshfocus.timer"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.focustimer.app"
+        applicationId = "com.freshfocus.timer"
         minSdk = 19
         targetSdk = 28
         versionCode = 1
         versionName = "1.0"
     }
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "focustimer123"
+            keyAlias = "focustimerdebug"
+            keyPassword = "focustimer123"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
         release {
             isMinifyEnabled = false
         }

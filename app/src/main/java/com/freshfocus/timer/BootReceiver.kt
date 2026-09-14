@@ -1,4 +1,4 @@
-package com.focustimer.app
+package com.freshfocus.timer
 
 import android.content.BroadcastReceiver
 import android.content.Context
