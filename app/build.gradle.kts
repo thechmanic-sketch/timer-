@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.focustimer.app"
-        minSdk = 26
+        minSdk = 19
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

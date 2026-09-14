@@ -10,6 +10,7 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -51,6 +52,10 @@ class MainActivity : AppCompatActivity() {
     private var cameraDevice: CameraDevice? = null
     private var captureSession: CameraCaptureSession? = null
     private var cameraId: String? = null
+
+    // Legacy Camera1 API, used on API < 21 where Camera2 doesn't exist.
+    private var legacyCamera: android.hardware.Camera? = null
+    private var legacyFocusPollRunnable: Runnable? = null
 
     private val sastFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).apply {
         timeZone = TimeZone.getTimeZone("Africa/Johannesburg") // SAST, UTC+2
@@ -225,9 +230,17 @@ class MainActivity : AppCompatActivity() {
         mainTimeText.text = String.format(Locale.getDefault(), "%02d:%02d", m, s)
     }
 
-    // ---------- Camera2 focus readout ----------
+    // ---------- Camera focus readout ----------
 
     private fun openCamera() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            openCamera2()
+        } else {
+            openLegacyCamera()
+        }
+    }
+
+    private fun openCamera2() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED
         ) return
@@ -299,11 +312,77 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /** Camera1 fallback for API < 21 (no CameraManager/Camera2 on those devices). */
+    private fun openLegacyCamera() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+
+        try {
+            @Suppress("DEPRECATION")
+            val camera = android.hardware.Camera.open() ?: return
+            legacyCamera = camera
+
+            @Suppress("DEPRECATION")
+            val params = camera.parameters
+            @Suppress("DEPRECATION")
+            if (params.supportedFocusModes?.contains(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) == true) {
+                @Suppress("DEPRECATION")
+                params.focusMode = android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
+            }
+            @Suppress("DEPRECATION")
+            camera.parameters = params
+
+            @Suppress("DEPRECATION")
+            camera.setPreviewTexture(cameraPreview.surfaceTexture)
+            @Suppress("DEPRECATION")
+            camera.startPreview()
+
+            pollLegacyFocusState(camera)
+        } catch (_: Exception) {
+            focusReadoutText.text = "Focus distance: unavailable on this camera"
+        }
+    }
+
+    /** Old Camera1 API exposes only a focus-locked callback, not a live distance value. */
+    private fun pollLegacyFocusState(camera: android.hardware.Camera) {
+        legacyFocusPollRunnable = object : Runnable {
+            override fun run() {
+                if (legacyCamera == null) return
+                try {
+                    @Suppress("DEPRECATION")
+                    camera.autoFocus { success, _ ->
+                        focusReadoutText.text = if (success) {
+                            "Focus: locked (continuous autofocus)"
+                        } else {
+                            "Focus: searching..."
+                        }
+                    }
+                } catch (_: Exception) {
+                }
+                handler.postDelayed(this, 2000)
+            }
+        }
+        handler.post(legacyFocusPollRunnable!!)
+    }
+
+    private fun closeLegacyCamera() {
+        legacyFocusPollRunnable?.let { handler.removeCallbacks(it) }
+        legacyFocusPollRunnable = null
+        legacyCamera?.let {
+            @Suppress("DEPRECATION")
+            it.stopPreview()
+            it.release()
+        }
+        legacyCamera = null
+    }
+
     private fun closeCamera() {
         captureSession?.close()
         captureSession = null
         cameraDevice?.close()
         cameraDevice = null
+        closeLegacyCamera()
     }
 
     override fun onDestroy() {

@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import java.util.Calendar
 
 /**
@@ -38,6 +39,13 @@ object AlarmScheduler {
     ) {
         val triggerTime = nextOccurrence(hour, minute)
 
+        // FLAG_IMMUTABLE only exists from API 23 onward.
+        val immutableFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_IMMUTABLE
+        } else {
+            0
+        }
+
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("hour", hour)
             putExtra("minute", minute)
@@ -45,18 +53,22 @@ object AlarmScheduler {
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context, requestCode, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or immutableFlag
         )
 
-        val showIntent = PendingIntent.getActivity(
-            context, requestCode, Intent(context, MainActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        alarmManager.setAlarmClock(
-            AlarmManager.AlarmClockInfo(triggerTime, showIntent),
-            pendingIntent
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val showIntent = PendingIntent.getActivity(
+                context, requestCode, Intent(context, MainActivity::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or immutableFlag
+            )
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(triggerTime, showIntent),
+                pendingIntent
+            )
+        } else {
+            // No setAlarmClock before API 21; setExact (API 19+) is the closest equivalent.
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        }
     }
 
     private fun nextOccurrence(hour: Int, minute: Int): Long {
